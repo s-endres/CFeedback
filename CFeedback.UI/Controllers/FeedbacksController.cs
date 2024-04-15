@@ -18,6 +18,40 @@ namespace CFeedback.UI.Controllers
             categoryRepository = new CategoryRepository();
         }
 
+        public IActionResult Filter()
+        {
+            ViewData["CategoryId"] = new SelectList(categoryRepository.GetAll(), "CategoryId", "Name");
+
+            List<Feedback> result;
+
+            var lastMonth = DateTime.UtcNow.AddMonths(-1).Month;
+
+            result = feedbackRepository.GetAllLastMonth(lastMonth);
+
+            return View(result);
+        }
+
+        [HttpPost]
+        public ActionResult Filter(int? CategoryId)
+        {
+            List<Feedback> result;
+
+            var lastMonth = DateTime.UtcNow.AddMonths(-1).Month;
+
+            if (CategoryId == null || CategoryId == 0)
+            {
+                result = feedbackRepository.GetAllLastMonth(lastMonth);
+                ViewData["CategoryId"] = new SelectList(categoryRepository.GetAll(), "CategoryId", "Name");
+            }
+            else
+            {
+                result = feedbackRepository.GetLastMonthByCategory(lastMonth, (int)CategoryId);
+                ViewData["CategoryId"] = new SelectList(categoryRepository.GetAll(), "CategoryId", "Name", (int)CategoryId);
+            }
+            
+            return PartialView("Filter", result);
+        }
+
         // GET: Feedbacks
         public async Task<IActionResult> Index()
         {

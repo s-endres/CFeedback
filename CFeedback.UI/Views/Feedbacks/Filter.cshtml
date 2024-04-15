@@ -1,0 +1,103 @@
+﻿@model IEnumerable<CFeedback.Infrastructure.Models.Feedback>
+
+@{
+    ViewData["Title"] = "Last Month Feedback";
+}
+
+<content id="contenti">
+    <h1>@ViewData["Title"]</h1>
+
+    <p>
+        <label class="control-label"></label>
+        @Html.DropDownList("CategoriesDDL", ViewBag.CategoryId as SelectList, "--All--")
+    
+    </p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.CustomerName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Description)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.SubmissionDate)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Category)
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CustomerName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Description)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.SubmissionDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Category.Name)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+</content>
+
+
+<script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+    //DDL: Drop down list
+    $(document).ready(function (e) {
+        $("#CategoriesDDL").change(function (e) {
+            getBugsByFilters();
+        });
+    });
+
+    function getBugsByFilters() {
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("Filter", "Feedbacks")",
+            data: { CategoryId: parseInt($("#CategoriesDDL").val()) },
+            dataType: "html",
+            success: function (response) { 
+                $("#contenti").empty();
+                $("#contenti").append(response);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console(thrownError);
+            }
+        });
+
+        // var a = parseInt($("#CategoriesDDL").val());
+
+        // var Options = {};
+        // Options.url = "@Url.Action("Filter", "Feedbacks")";
+        // Options.type = "POST";
+        // Options.data = JSON.stringify({
+        //     CategoryId: a
+        // });
+        // Options.datatype = "json";
+        // Options.contentType = "application/json";
+        // Options.success = function (data) {
+        //     // $("#contenti").empty();
+        //     // $("#contenti").append(data);
+        // };
+        // Options.error = function () { alert("An error occurred while getting the results"); };
+        // $.ajax(Options);
+    }
+
+</script>

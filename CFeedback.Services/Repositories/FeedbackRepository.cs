@@ -5,9 +5,14 @@ namespace CFeedback.Services.Repositories
 {
     public class FeedbackRepository : BaseRespository<Feedback>
     {
-        public IList<Feedback> GetLastMontByCategory(int month, int categoryId)
+        public List<Feedback> GetLastMonthByCategory(int month, int categoryId)
         {
-            return this.DbSet.Where(x => x.SubmissionDate.Month == month && x.CategoryId == categoryId).ToList();
+            return this.DbSet.Include(f => f.Category).Where(x => x.SubmissionDate.Month == month && x.CategoryId == categoryId).ToList();
+        }
+
+        public List<Feedback> GetAllLastMonth(int month)
+        {
+            return this.DbSet.Include(f => f.Category).Where(x => x.SubmissionDate.Month == month).OrderBy(x => x.Category.Name).ToList();
         }
 
         public IQueryable<Feedback> GetAllWithCategories()
