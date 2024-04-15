@@ -11,9 +11,18 @@ namespace CFeedback.Infrastructure
 {
     public class CFeedbackContext : DbContext
     {
-        public CFeedbackContext(DbContextOptions<CFeedbackContext> options): base(options)
+        public CFeedbackContext(DbContextOptions<CFeedbackContext> options): base(GetOptions())
         {
-            
+
+        }
+        public CFeedbackContext() : base(GetOptions())
+        {
+
+        }
+
+        private static DbContextOptions GetOptions()
+        {
+            return MySQLDbContextOptionsExtensions.UseMySQL(new DbContextOptionsBuilder(), "server=localhost;uid=root;pwd='Sfecadmin10.';database=CFeedback;").Options;
         }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<Category> Categories { get; set; }

@@ -11,10 +11,17 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CFeedback.Abstractions\CFeedback.Abstractions.csproj" />
     <ProjectReference Include="..\CFeedback.Infrastructure\CFeedback.Infrastructure.csproj" />
+    <ProjectReference Include="..\CFeedback.Services\CFeedback.Services.csproj" />
   </ItemGroup>
 
 </Project>
