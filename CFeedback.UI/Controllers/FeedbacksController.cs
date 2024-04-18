@@ -59,7 +59,7 @@ namespace CFeedback.UI.Controllers
         }
 
         // GET: Feedbacks/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
@@ -88,7 +88,7 @@ namespace CFeedback.UI.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FeedbackId,CustomerName,Description,SubmissionDate,CategoryId")] FeedbackRequest request)
+        public IActionResult Create([Bind("FeedbackId,CustomerName,Description,SubmissionDate,CategoryId")] FeedbackRequest request)
         {
             if (ModelState.IsValid)
             {
@@ -109,7 +109,7 @@ namespace CFeedback.UI.Controllers
         }
 
         // GET: Feedbacks/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null)
             {
@@ -130,7 +130,7 @@ namespace CFeedback.UI.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("FeedbackId,CustomerName,Description,SubmissionDate,CategoryId")] FeedbackRequest request)
+        public IActionResult Edit(int id, [Bind("FeedbackId,CustomerName,Description,SubmissionDate,CategoryId")] FeedbackRequest request)
         {
             if (id != request.FeedbackId)
             {
@@ -168,7 +168,7 @@ namespace CFeedback.UI.Controllers
         }
 
         // GET: Feedbacks/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             if (id == null)
             {
@@ -187,7 +187,7 @@ namespace CFeedback.UI.Controllers
         // POST: Feedbacks/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
             var feedback = _feedbackRepository.GetById(id);
             if (feedback != null)
