@@ -152,15 +152,9 @@ namespace CFeedback.UI.Controllers
                 feedback.SubmissionDate = request.SubmissionDate;
                 feedback.CategoryId = request.CategoryId;
 
-                try
-                {
-                    _feedbackRepository.Edit(feedback);
-                    _feedbackRepository.SaveChanges();
-                }
-                catch (Exception e)
-                {
-                    throw e;
-                }
+                _feedbackRepository.Edit(feedback);
+                _feedbackRepository.SaveChanges();
+
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", request.CategoryId);
