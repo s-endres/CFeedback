@@ -1,10 +1,15 @@
-﻿using CFeedback.Infrastructure.Models;
+﻿using CFeedback.Infrastructure;
+using CFeedback.Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CFeedback.Services.Repositories
 {
     public class FeedbackRepository : BaseRespository<Feedback>
     {
+        public FeedbackRepository(CFeedbackContext context):base(context)
+        {
+            
+        }
         public List<Feedback> GetLastMonthByCategory(int month, int categoryId)
         {
             return this.DbSet.Include(f => f.Category).Where(x => x.SubmissionDate.Month == month && x.CategoryId == categoryId).ToList();

@@ -9,24 +9,24 @@ namespace CFeedback.UI.Controllers
 {
     public class FeedbacksController : Controller
     {
-        private FeedbackRepository feedbackRepository;
-        private CategoryRepository categoryRepository;
+        private FeedbackRepository _feedbackRepository;
+        private CategoryRepository _categoryRepository;
 
-        public FeedbacksController()
+        public FeedbacksController(FeedbackRepository feedbackRepository, CategoryRepository categoryRepository)
         {
-            feedbackRepository = new FeedbackRepository();
-            categoryRepository = new CategoryRepository();
+            _feedbackRepository = feedbackRepository;
+            _categoryRepository = categoryRepository;
         }
 
         public IActionResult Filter()
         {
-            ViewData["CategoryId"] = new SelectList(categoryRepository.GetAll(), "CategoryId", "Name");
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name");
 
             List<Feedback> result;
 
             var lastMonth = DateTime.UtcNow.AddMonths(-1).Month;
 
-            result = feedbackRepository.GetAllLastMonth(lastMonth);
+            result = _feedbackRepository.GetAllLastMonth(lastMonth);
 
             return View(result);
         }
@@ -40,13 +40,13 @@ namespace CFeedback.UI.Controllers
 
             if (CategoryId == null || CategoryId == 0)
             {
-                result = feedbackRepository.GetAllLastMonth(lastMonth);
-                ViewData["CategoryId"] = new SelectList(categoryRepository.GetAll(), "CategoryId", "Name");
+                result = _feedbackRepository.GetAllLastMonth(lastMonth);
+                ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name");
             }
             else
             {
-                result = feedbackRepository.GetLastMonthByCategory(lastMonth, (int)CategoryId);
-                ViewData["CategoryId"] = new SelectList(categoryRepository.GetAll(), "CategoryId", "Name", (int)CategoryId);
+                result = _feedbackRepository.GetLastMonthByCategory(lastMonth, (int)CategoryId);
+                ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", (int)CategoryId);
             }
             
             return PartialView("Filter", result);
@@ -55,7 +55,7 @@ namespace CFeedback.UI.Controllers
         // GET: Feedbacks
         public async Task<IActionResult> Index()
         {
-            return View(await feedbackRepository.GetAllWithCategories().ToListAsync());
+            return View(await _feedbackRepository.GetAllWithCategories().ToListAsync());
         }
 
         // GET: Feedbacks/Details/5
@@ -66,7 +66,7 @@ namespace CFeedback.UI.Controllers
                 return NotFound();
             }
 
-            var feedback = feedbackRepository.GetById((int)id);
+            var feedback = _feedbackRepository.GetById((int)id);
 
             if (feedback == null)
             {
@@ -79,7 +79,7 @@ namespace CFeedback.UI.Controllers
         // GET: Feedbacks/Create
         public IActionResult Create()
         {
-            ViewData["CategoryId"] = new SelectList(categoryRepository.GetAll(), "CategoryId", "Name");
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name");
             return View();
         }
 
@@ -100,11 +100,11 @@ namespace CFeedback.UI.Controllers
                 feedback.SubmissionDate = request.SubmissionDate;
                 feedback.CategoryId = request.CategoryId;
 
-                feedbackRepository.Add(feedback);
-                feedbackRepository.SaveChanges();
+                _feedbackRepository.Add(feedback);
+                _feedbackRepository.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(categoryRepository.GetAll(), "CategoryId", "Name", request.CategoryId);
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", request.CategoryId);
             return View(request);
         }
 
@@ -116,12 +116,12 @@ namespace CFeedback.UI.Controllers
                 return NotFound();
             }
 
-            var feedback = feedbackRepository.Get(id);
+            var feedback = _feedbackRepository.Get(id);
             if (feedback == null)
             {
                 return NotFound();
             }
-            ViewData["CategoryId"] = new SelectList(categoryRepository.GetAll(), "CategoryId", "Name", feedback.CategoryId);
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", feedback.CategoryId);
             return View(feedback);
         }
 
@@ -154,8 +154,8 @@ namespace CFeedback.UI.Controllers
 
                 try
                 {
-                    feedbackRepository.Edit(feedback);
-                    feedbackRepository.SaveChanges();
+                    _feedbackRepository.Edit(feedback);
+                    _feedbackRepository.SaveChanges();
                 }
                 catch (Exception e)
                 {
@@ -163,7 +163,7 @@ namespace CFeedback.UI.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(categoryRepository.GetAll(), "CategoryId", "Name", request.CategoryId);
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", request.CategoryId);
             return View(request);
         }
 
@@ -175,7 +175,7 @@ namespace CFeedback.UI.Controllers
                 return NotFound();
             }
 
-            var feedback = feedbackRepository.GetById((int)id);
+            var feedback = _feedbackRepository.GetById((int)id);
             if (feedback == null)
             {
                 return NotFound();
@@ -189,19 +189,19 @@ namespace CFeedback.UI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var feedback = feedbackRepository.GetById(id);
+            var feedback = _feedbackRepository.GetById(id);
             if (feedback != null)
             {
-                feedbackRepository.Remove(feedback);
+                _feedbackRepository.Remove(feedback);
             }
 
-            feedbackRepository.SaveChanges();
+            _feedbackRepository.SaveChanges();
             return RedirectToAction(nameof(Index));
         }
 
         private bool FeedbackExists(int id)
         {
-            return feedbackRepository.FeedbackExists(id);
+            return _feedbackRepository.FeedbackExists(id);
         }
     }
 }

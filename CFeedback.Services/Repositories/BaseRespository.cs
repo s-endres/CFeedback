@@ -8,9 +8,9 @@ namespace CFeedback.Services.Repositories
         protected CFeedbackContext _context = null;
         protected DbSet<T> DbSet { get; set; }
 
-        public BaseRespository()
+        public BaseRespository(CFeedbackContext context)
         {
-            _context = new CFeedbackContext();
+            _context = context;
             DbSet = _context.Set<T>();
         }
 

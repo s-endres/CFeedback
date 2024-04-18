@@ -1,4 +1,5 @@
 using CFeedback.Infrastructure;
+using CFeedback.Services.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,8 @@ builder.Services.AddDbContext<CFeedbackContext>(options =>
 {
     options.UseMySQL(builder.Configuration.GetConnectionString("constring"));
 });
+builder.Services.AddTransient<FeedbackRepository, FeedbackRepository>();
+builder.Services.AddTransient<CategoryRepository, CategoryRepository>();
 
 var app = builder.Build();
 
