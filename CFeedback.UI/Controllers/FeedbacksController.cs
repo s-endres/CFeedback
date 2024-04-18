@@ -4,83 +4,161 @@ using Microsoft.EntityFrameworkCore;
 using CFeedback.Infrastructure.Models;
 using CFeedback.Abstractions.Requests;
 using CFeedback.Services.Repositories;
+using CFeedback.Abstractions.Constants;
+using ZstdSharp.Unsafe;
 
 namespace CFeedback.UI.Controllers
 {
     public class FeedbacksController : Controller
     {
-        private FeedbackRepository _feedbackRepository;
-        private CategoryRepository _categoryRepository;
+        private readonly FeedbackRepository _feedbackRepository;
+        private readonly CategoryRepository _categoryRepository;
+        private readonly ILogger<FeedbacksController> _logger;
 
-        public FeedbacksController(FeedbackRepository feedbackRepository, CategoryRepository categoryRepository)
+        public FeedbacksController(FeedbackRepository feedbackRepository,
+            CategoryRepository categoryRepository,
+            ILogger<FeedbacksController> logger)
         {
             _feedbackRepository = feedbackRepository;
             _categoryRepository = categoryRepository;
+            _logger = logger;
         }
 
         public IActionResult Filter()
         {
-            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name");
+            _logger.LogTrace("FeedbacksController Filter Get");
 
-            List<Feedback> result;
+            try
+            {
+                ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name");
 
-            var lastMonth = DateTime.UtcNow.AddMonths(-1).Month;
+                List<Feedback> result;
 
-            result = _feedbackRepository.GetAllLastMonth(lastMonth);
+                var lastMonth = DateTime.UtcNow.AddMonths(-1).Month;
 
-            return View(result);
+                result = _feedbackRepository.GetAllLastMonth(lastMonth);
+
+                return View(result);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Handler: {0}, Method: {1}, Description: {2}",
+                    "FeedbacksController",
+                    "Filter Get",
+                    ex.InnerException);
+
+                throw new BadHttpRequestException(Global.BadRequest);
+            }
+
         }
 
         [HttpPost]
         public ActionResult Filter(int? CategoryId)
         {
-            List<Feedback> result;
+            _logger.LogTrace("FeedbacksController Filter Post");
 
-            var lastMonth = DateTime.UtcNow.AddMonths(-1).Month;
+            try { 
 
-            if (CategoryId == null || CategoryId == 0)
-            {
-                result = _feedbackRepository.GetAllLastMonth(lastMonth);
-                ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name");
-            }
-            else
-            {
-                result = _feedbackRepository.GetLastMonthByCategory(lastMonth, (int)CategoryId);
-                ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", (int)CategoryId);
-            }
+                List<Feedback> result;
+
+                var lastMonth = DateTime.UtcNow.AddMonths(-1).Month;
+
+                if (CategoryId == null || CategoryId == 0)
+                {
+                    result = _feedbackRepository.GetAllLastMonth(lastMonth);
+                    ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name");
+                }
+                else
+                {
+                    result = _feedbackRepository.GetLastMonthByCategory(lastMonth, (int)CategoryId);
+                    ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", (int)CategoryId);
+                }
             
-            return PartialView("Filter", result);
+                return PartialView("Filter", result);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Handler: {0}, Method: {1}, Description: {2}",
+                    "FeedbacksController",
+                    "Filter Post",
+                    ex.InnerException);
+
+                throw new BadHttpRequestException(Global.BadRequest);
+            }
         }
 
         // GET: Feedbacks
         public async Task<IActionResult> Index()
         {
-            return View(await _feedbackRepository.GetAllWithCategories().ToListAsync());
+            _logger.LogTrace("FeedbacksController Index Get");
+
+            try { 
+                return View(await _feedbackRepository.GetAllWithCategories().ToListAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Handler: {0}, Method: {1}, Description: {2}",
+                    "FeedbacksController",
+                    "Index Get",
+                    ex.InnerException);
+
+                throw new BadHttpRequestException(Global.BadRequest);
+            }
         }
 
         // GET: Feedbacks/Details/5
         public IActionResult Details(int? id)
         {
-            if (id == null)
+            _logger.LogTrace("FeedbacksController Details Get");
+
+            try
             {
-                return NotFound();
+                if (id == null)
+                {
+                    return NotFound();
+                }
+
+                var feedback = _feedbackRepository.GetById((int)id);
+
+                if (feedback == null)
+                {
+                    return NotFound();
+                }
+
+                return View(feedback);
             }
-
-            var feedback = _feedbackRepository.GetById((int)id);
-
-            if (feedback == null)
+            catch (Exception ex)
             {
-                return NotFound();
-            }
+                _logger.LogError("Handler: {0}, Method: {1}, Description: {2}",
+                    "FeedbacksController",
+                    "Details Get",
+                    ex.InnerException);
 
-            return View(feedback);
+                throw new BadHttpRequestException(Global.BadRequest);
+            }
         }
 
         // GET: Feedbacks/Create
         public IActionResult Create()
         {
-            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name");
-            return View();
+            _logger.LogTrace("FeedbacksController Create Get");
+
+            try 
+            { 
+                ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name");
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Handler: {0}, Method: {1}, Description: {2}",
+                    "FeedbacksController",
+                    "Create Get",
+                    ex.InnerException);
+
+                throw new BadHttpRequestException(Global.BadRequest);
+            }
         }
 
         // POST: Feedbacks/Create
@@ -90,39 +168,67 @@ namespace CFeedback.UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create([Bind("FeedbackId,CustomerName,Description,SubmissionDate,CategoryId")] FeedbackRequest request)
         {
-            if (ModelState.IsValid)
-            {
-                Feedback feedback = new Feedback();
+            _logger.LogTrace("FeedbacksController Create Post");
 
-                feedback.FeedbackId = request.FeedbackId;
-                feedback.CustomerName = request.CustomerName;
-                feedback.Description = request.Description;
-                feedback.SubmissionDate = request.SubmissionDate;
-                feedback.CategoryId = request.CategoryId;
+            try 
+            { 
+                if (ModelState.IsValid)
+                {
+                    Feedback feedback = new Feedback();
 
-                _feedbackRepository.Add(feedback);
-                _feedbackRepository.SaveChanges();
-                return RedirectToAction(nameof(Index));
+                    feedback.FeedbackId = request.FeedbackId;
+                    feedback.CustomerName = request.CustomerName;
+                    feedback.Description = request.Description;
+                    feedback.SubmissionDate = request.SubmissionDate;
+                    feedback.CategoryId = request.CategoryId;
+
+                    _feedbackRepository.Add(feedback);
+                    _feedbackRepository.SaveChanges();
+                    return RedirectToAction(nameof(Index));
+                }
+                ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", request.CategoryId);
+                return View(request);
             }
-            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", request.CategoryId);
-            return View(request);
+            catch (Exception ex)
+            {
+                _logger.LogError("Handler: {0}, Method: {1}, Description: {2}",
+                    "FeedbacksController",
+                    "Create Post",
+                    ex.InnerException);
+
+                throw new BadHttpRequestException(Global.BadRequest);
+            }
         }
 
         // GET: Feedbacks/Edit/5
         public IActionResult Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            _logger.LogTrace("FeedbacksController Edit Get");
 
-            var feedback = _feedbackRepository.Get(id);
-            if (feedback == null)
+            try
             {
-                return NotFound();
+                if (id == null)
+                {
+                    return NotFound();
+                }
+
+                var feedback = _feedbackRepository.Get(id);
+                if (feedback == null)
+                {
+                    return NotFound();
+                }
+                ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", feedback.CategoryId);
+                return View(feedback);
             }
-            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", feedback.CategoryId);
-            return View(feedback);
+            catch (Exception ex)
+            {
+                _logger.LogError("Handler: {0}, Method: {1}, Description: {2}",
+                    "FeedbacksController",
+                    "Edit Get",
+                    ex.InnerException);
+
+                throw new BadHttpRequestException(Global.BadRequest);
+            }
         }
 
         // POST: Feedbacks/Edit/5
@@ -132,50 +238,79 @@ namespace CFeedback.UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, [Bind("FeedbackId,CustomerName,Description,SubmissionDate,CategoryId")] FeedbackRequest request)
         {
-            if (id != request.FeedbackId)
+            _logger.LogTrace("FeedbacksController Edit Post");
+
+            try
             {
-                return NotFound();
-            }
+                if (id != request.FeedbackId)
+                {
+                    return NotFound();
+                }
 
-            if (!FeedbackExists(request.FeedbackId))
+                if (!FeedbackExists(request.FeedbackId))
+                {
+                    return NotFound();
+                }
+
+                if (ModelState.IsValid)
+                {
+                    Feedback feedback = new Feedback();
+
+                    feedback.FeedbackId = request.FeedbackId;
+                    feedback.CustomerName = request.CustomerName;
+                    feedback.Description = request.Description;
+                    feedback.SubmissionDate = request.SubmissionDate;
+                    feedback.CategoryId = request.CategoryId;
+
+                    _feedbackRepository.Edit(feedback);
+                    _feedbackRepository.SaveChanges();
+
+                    return RedirectToAction(nameof(Index));
+                }
+                ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", request.CategoryId);
+                return View(request);
+            }
+            catch (Exception ex)
             {
-                return NotFound();
+                _logger.LogError("Handler: {0}, Method: {1}, Description: {2}",
+                    "FeedbacksController",
+                    "Edit Post",
+                    ex.InnerException);
+
+                throw new BadHttpRequestException(Global.BadRequest);
             }
-
-            if (ModelState.IsValid)
-            {
-                Feedback feedback = new Feedback();
-
-                feedback.FeedbackId = request.FeedbackId;
-                feedback.CustomerName = request.CustomerName;
-                feedback.Description = request.Description;
-                feedback.SubmissionDate = request.SubmissionDate;
-                feedback.CategoryId = request.CategoryId;
-
-                _feedbackRepository.Edit(feedback);
-                _feedbackRepository.SaveChanges();
-
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(), "CategoryId", "Name", request.CategoryId);
-            return View(request);
         }
 
         // GET: Feedbacks/Delete/5
         public IActionResult Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            _logger.LogTrace("FeedbacksController Delete Get");
 
-            var feedback = _feedbackRepository.GetById((int)id);
-            if (feedback == null)
+            try
             {
-                return NotFound();
-            }
 
-            return View(feedback);
+                if (id == null)
+                {
+                    return NotFound();
+                }
+
+                var feedback = _feedbackRepository.GetById((int)id);
+                if (feedback == null)
+                {
+                    return NotFound();
+                }
+
+                return View(feedback);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Handler: {0}, Method: {1}, Description: {2}",
+                    "FeedbacksController",
+                    "Delete Get",
+                    ex.InnerException);
+
+                throw new BadHttpRequestException(Global.BadRequest);
+            }
         }
 
         // POST: Feedbacks/Delete/5
@@ -183,14 +318,28 @@ namespace CFeedback.UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            var feedback = _feedbackRepository.GetById(id);
-            if (feedback != null)
-            {
-                _feedbackRepository.Remove(feedback);
-            }
+            _logger.LogTrace("FeedbacksController Delete Post");
 
-            _feedbackRepository.SaveChanges();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                var feedback = _feedbackRepository.GetById(id);
+                if (feedback != null)
+                {
+                    _feedbackRepository.Remove(feedback);
+                }
+
+                _feedbackRepository.SaveChanges();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Handler: {0}, Method: {1}, Description: {2}",
+                    "FeedbacksController",
+                    "Delete Post",
+                    ex.InnerException);
+
+                throw new BadHttpRequestException(Global.BadRequest);
+            }
         }
 
         private bool FeedbackExists(int id)
